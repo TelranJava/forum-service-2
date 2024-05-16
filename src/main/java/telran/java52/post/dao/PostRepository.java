@@ -15,6 +15,6 @@ public interface PostRepository extends MongoRepository<Post, String> {
 
 	Stream<Post> findPostsByTagsIn(List<String> tags);
 
-	@Query("{dateCreated: {$gt: ?0, $lt: ?1}}")
+	@Query("{dateCreated: {$gte: ?0, $lte: ?1}}")
 	Stream<Post> findPostsByDateCreatedAfterAndBefore(LocalDate after, LocalDate before);
 }
