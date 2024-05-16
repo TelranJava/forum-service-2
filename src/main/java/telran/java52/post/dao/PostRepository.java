@@ -13,8 +13,9 @@ public interface PostRepository extends MongoRepository<Post, String> {
 
 	Stream<Post> findByAuthorIgnoreCase(String author);
 
-	Stream<Post> findPostsByTagsIn(List<String> tags);
+	Stream<Post> findPostsByTagsInIgnoreCase(List<String> tags);
 
-	@Query("{dateCreated: {$gte: ?0, $lte: ?1}}")
-	Stream<Post> findPostsByDateCreatedAfterAndBefore(LocalDate after, LocalDate before);
+	@Query("{dateCreated: {$gte: ?0, $lt: ?1}}")
+	Stream<Post> findPostsByDateCreatedBetween(LocalDate from, 
+			LocalDate to);
 }
