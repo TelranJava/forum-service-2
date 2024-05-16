@@ -19,7 +19,7 @@ import telran.java52.post.dto.exeption.PostNotFoundExeption;
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
-	final PostRepository postRepository; // создается за счет @RequiredArgsConstructor
+	final PostRepository postRepository; 
 	final ModelMapper modelMapper;
 
 	@Override
@@ -77,7 +77,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public Iterable<PostDto> findPostsByAuthor(String author) {// hw
+	public Iterable<PostDto> findPostsByAuthor(String author) {
 		return postRepository.findByAuthorIgnoreCase(author)
 				.map(p -> modelMapper.map(p, PostDto.class))
 				.toList();
@@ -85,14 +85,14 @@ public class PostServiceImpl implements PostService {
 	
 
 	@Override
-	public Iterable<PostDto> findPostsByTags(List<String> tags) {// hw
+	public Iterable<PostDto> findPostsByTags(List<String> tags) {
 		return postRepository.findPostsByTagsInIgnoreCase(tags)
 				.map(p -> modelMapper.map(p, PostDto.class))
 				.toList();
 	}
 
 	@Override
-	public Iterable<PostDto> findPostsByPeriod(DatePeriodDto datePeriod) {// hw
+	public Iterable<PostDto> findPostsByPeriod(DatePeriodDto datePeriod) {
 		return postRepository.findPostsByDateCreatedBetween(datePeriod.getDateFrom(), datePeriod.getDateTo())
 				.map(p->modelMapper.map(p, PostDto.class))
 				.toList();

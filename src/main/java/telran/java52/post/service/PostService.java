@@ -20,10 +20,10 @@ public interface PostService {
 
 	void addLike(String id);
 
-	Iterable<PostDto> findPostsByAuthor(String author); //hw
+	Iterable<PostDto> findPostsByAuthor(String author); 
 
-	Iterable<PostDto> findPostsByTags(List<String> tags); //hw
+	Iterable<PostDto> findPostsByTags(List<String> tags); 
 
-	Iterable<PostDto> findPostsByPeriod(DatePeriodDto datePeriodDto); //hw
+	Iterable<PostDto> findPostsByPeriod(DatePeriodDto datePeriodDto); 
 
 }
