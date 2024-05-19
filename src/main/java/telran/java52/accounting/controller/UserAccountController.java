@@ -54,13 +54,13 @@ public class UserAccountController {
 	}
 
 	@PutMapping("/user/{login}/role/{roles}")
-	public RolesDto addRole(@PathVariable String login, @PathVariable String roles) {
-		return accountService.changeRolesList(login, roles, true);
+	public RolesDto addRole(@PathVariable String login, @PathVariable String role) {
+		return accountService.changeRolesList(login, role, true);
 	}
 
 	@DeleteMapping("/user/{login}/role/{roles}")
-	public RolesDto deleteRole(@PathVariable String login, @PathVariable String roles) {
-		return accountService.changeRolesList(login, roles, false);
+	public RolesDto deleteRole(@PathVariable String login, @PathVariable String role) {
+		return accountService.changeRolesList(login, role, false);
 	}
 
 	@PutMapping("/user/password")

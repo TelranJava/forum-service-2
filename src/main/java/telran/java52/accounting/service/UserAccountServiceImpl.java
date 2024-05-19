@@ -1,48 +1,66 @@
 package telran.java52.accounting.service;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+import telran.java52.accounting.dao.UserRepository;
 import telran.java52.accounting.dto.RolesDto;
 import telran.java52.accounting.dto.UserDto;
 import telran.java52.accounting.dto.UserEditDto;
 import telran.java52.accounting.dto.UserRegisterDto;
+import telran.java52.accounting.exeption.UserNotFoundExeption;
+import telran.java52.accounting.model.UserAccount;
 
+@Service
+@RequiredArgsConstructor
 public class UserAccountServiceImpl implements UserAccountService {
-	
-	//HW
+
+	final UserRepository userRepository;
+	final ModelMapper modelMapper;
 
 	@Override
 	public UserDto register(UserRegisterDto user) {
-		// TODO Auto-generated method stub
-		return null;
+		UserAccount userAccount = modelMapper.map(user, UserAccount.class);
+		userAccount = userRepository.save(userAccount);
+		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto getUser(String login) {
-		// TODO Auto-generated method stub
-		return null;
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto updateUser(String login, UserEditDto user) {
-		// TODO Auto-generated method stub
-		return null;
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		userAccount.setFirstName(user.getFirstName());
+		userAccount.setLastName(user.getLastName());
+		userAccount = userRepository.save(userAccount);
+		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto removeUser(String login) {
-		// TODO Auto-generated method stub
-		return null;
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		userRepository.deleteById(login);
+		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
-	public RolesDto changeRolesList(String login, String roles, boolean isAddRole) {
-		// TODO Auto-generated method stub
-		return null;
+	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		boolean res = isAddRole ? userAccount.addRole(role) : userAccount.removeRole(role);
+		userRepository.save(userAccount);
+		return modelMapper.map(userAccount.getRoles(), RolesDto.class);
 	}
 
 	@Override
 	public void changePassword(String login, String newPassword) {
-		// TODO Auto-generated method stub
-
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		userAccount.setPassword(newPassword);
+		userRepository.save(userAccount);
 	}
 
 }

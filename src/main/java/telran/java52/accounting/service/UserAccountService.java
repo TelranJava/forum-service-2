@@ -15,7 +15,7 @@ public interface UserAccountService { 		// login === userName
 
 	UserDto removeUser(String login);	 				// Delete
 	
-	RolesDto changeRolesList(String login,String roles,boolean isAddRole);	// Update +
+	RolesDto changeRolesList(String login,String role,boolean isAddRole);	// Update +
 
 	void changePassword(String login, String newPassword);	// Update +
 }
