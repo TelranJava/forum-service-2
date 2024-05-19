@@ -1,6 +1,10 @@
 package telran.java52.accounting.service;
 
+import java.lang.reflect.Type;
+import java.util.HashSet;
+
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -51,9 +55,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
-		boolean res = isAddRole ? userAccount.addRole(role) : userAccount.removeRole(role);
+		if (isAddRole) {
+			userAccount.addRole(role);
+		} else {
+			userAccount.removeRole(role);
+		}
 		userRepository.save(userAccount);
-		return modelMapper.map(userAccount.getRoles(), RolesDto.class);
+
+		Type targetType = new TypeToken<HashSet<String>>() {}.getType();
+		HashSet<String> roleSet = modelMapper.map(userAccount.getRoles(), targetType);
+		return new RolesDto(login, roleSet);
 	}
 
 	@Override

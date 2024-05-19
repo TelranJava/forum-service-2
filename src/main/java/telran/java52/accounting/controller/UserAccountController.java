@@ -53,12 +53,12 @@ public class UserAccountController {
 		return accountService.updateUser(login, user);
 	}
 
-	@PutMapping("/user/{login}/role/{roles}")
+	@PutMapping("/user/{login}/role/{role}")
 	public RolesDto addRole(@PathVariable String login, @PathVariable String role) {
 		return accountService.changeRolesList(login, role, true);
 	}
 
-	@DeleteMapping("/user/{login}/role/{roles}")
+	@DeleteMapping("/user/{login}/role/{role}")
 	public RolesDto deleteRole(@PathVariable String login, @PathVariable String role) {
 		return accountService.changeRolesList(login, role, false);
 	}
