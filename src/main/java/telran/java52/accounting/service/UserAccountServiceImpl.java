@@ -1,10 +1,9 @@
 package telran.java52.accounting.service;
 
-import java.lang.reflect.Type;
-import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -61,9 +60,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			userAccount.removeRole(role);
 		}
 		userRepository.save(userAccount);
-
-		Type targetType = new TypeToken<HashSet<String>>() {}.getType();
-		HashSet<String> roleSet = modelMapper.map(userAccount.getRoles(), targetType);
+		Set<String> roleSet = userAccount.getRoles().stream().map(r -> r.toString()).collect(Collectors.toSet());
 		return new RolesDto(login, roleSet);
 	}
 
