@@ -63,7 +63,7 @@ public class UserAccountController {
 		return accountService.changeRolesList(login, role, false);
 	}
 
-	@PutMapping("/user/password")
+	@PutMapping("/password")
 	@ResponseStatus(HttpStatus.NO_CONTENT) // 204
 	public void changePassword(Principal principal, @RequestHeader("X-Password") String newPassword) { 
 		accountService.changePassword(principal.getName(), newPassword);
