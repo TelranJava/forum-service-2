@@ -81,8 +81,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 		} catch (Exception e) {
 			throw new IncorrectRoleExeption();
 		}
-		Set<String> roleSet = userAccount.getRoles().stream().map(r -> r.toString()).collect(Collectors.toSet());
-		return new RolesDto(login, roleSet);
+		
+//		Set<String> roleSet = userAccount.getRoles().stream().map(r -> r.toString()).collect(Collectors.toSet());
+//		return new RolesDto(login, roleSet);
+		
+		return modelMapper.map(userAccount, RolesDto.class);
 	}
 
 	@Override
