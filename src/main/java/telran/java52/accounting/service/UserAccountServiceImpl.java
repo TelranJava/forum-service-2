@@ -25,7 +25,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public UserDto register(UserRegisterDto user) {
-		if(userRepository.existsById(user.getLogin() )) {
+		if (userRepository.existsById(user.getLogin())) {
 			throw new UserExistsException();
 		}
 		UserAccount userAccount = modelMapper.map(user, UserAccount.class);
@@ -42,8 +42,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public UserDto updateUser(String login, UserEditDto user) {
 		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
-		userAccount.setFirstName(user.getFirstName());
-		userAccount.setLastName(user.getLastName());
+		if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
+			userAccount.setFirstName(user.getFirstName());
+		}
+		if (user.getLastName() != null && !user.getLastName().isEmpty()) {
+			userAccount.setLastName(user.getLastName());
+		}
 		userAccount = userRepository.save(userAccount);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
@@ -58,12 +62,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
 		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		boolean res;
 		if (isAddRole) {
-			userAccount.addRole(role);
+			res = userAccount.addRole(role);
 		} else {
-			userAccount.removeRole(role);
+			res = userAccount.removeRole(role);
 		}
-		userRepository.save(userAccount);
+		if (res) {
+			userRepository.save(userAccount);
+		}
 		Set<String> roleSet = userAccount.getRoles().stream().map(r -> r.toString()).collect(Collectors.toSet());
 		return new RolesDto(login, roleSet);
 	}
