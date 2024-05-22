@@ -2,7 +2,6 @@ package telran.java52.security.filter;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.core.annotation.Order;
@@ -41,8 +40,6 @@ public class AdminManagingRolesFilter implements Filter {
         String path = request.getServletPath();
 
         if (checkEndpoint(method, path)) {
-            Matcher matcher = PATH_PATTERN.matcher(path);
-            if (matcher.matches()) {
                 String login = request.getUserPrincipal().getName(); 
                 UserAccount admin;
 
@@ -54,19 +51,15 @@ public class AdminManagingRolesFilter implements Filter {
                     }
 
                 } catch (UserNotFoundExeption e) {
-                    response.sendError(404);//HttpServletResponse.SC_NOT_FOUND);
+                    response.sendError(404);
                     return;
                 } catch (AccessDeniedException e) {
-                    response.sendError(403);//HttpServletResponse.SC_FORBIDDEN);
+                    response.sendError(403);
                     return;
                 } catch (Exception e) {
-                    response.sendError(400);//HttpServletResponse.SC_BAD_REQUEST);
+                    response.sendError(400);
                     return;
                 }
-            } else {
-                response.sendError(400);//HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
         }
 
         chain.doFilter(request, response);
