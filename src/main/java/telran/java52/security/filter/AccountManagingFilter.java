@@ -16,8 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.dao.UserRepository;
-import telran.java52.accounting.exeption.AccessDeniedException;
-import telran.java52.accounting.exeption.UserNotFoundExeption;
 import telran.java52.accounting.model.Role;
 import telran.java52.accounting.model.UserAccount;
 
@@ -38,29 +36,21 @@ public class AccountManagingFilter implements Filter {
 		String path = request.getServletPath();
 
 		if (checkEndpoint(method, path)) {
-			try {
-				String userName = path.substring(path.lastIndexOf('/') + 1);
-				String login = request.getUserPrincipal().getName();
-				UserAccount userByLogin = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
 
-				if (HttpMethod.PUT.matches(method) && !isOwner(login, userName)) {
-					throw new AccessDeniedException();
-				}
+			String userName = path.substring(path.lastIndexOf('/') + 1);
+			String login = request.getUserPrincipal().getName();
+			UserAccount userByLogin = userRepository.findById(login).get();
 
-				if (HttpMethod.DELETE.matches(method)
-						&& !(isOwner(login, userName) || isAdmin(userByLogin.getRoles()))) {
-					throw new AccessDeniedException();
-				}
-			} catch (UserNotFoundExeption e) {
-				response.sendError(404);
-				return;
-			} catch (AccessDeniedException e) {
+			if (HttpMethod.PUT.matches(method) && !isOwner(login, userName)) {
 				response.sendError(403);
 				return;
-			} catch (Exception e) {
-				response.sendError(400);
+			}
+
+			if (HttpMethod.DELETE.matches(method) && !(isOwner(login, userName) || isAdmin(userByLogin.getRoles()))) {
+				response.sendError(403);
 				return;
 			}
+
 		}
 		chain.doFilter(request, response);
 	}
@@ -75,6 +65,6 @@ public class AccountManagingFilter implements Filter {
 
 	private boolean checkEndpoint(String method, String path) {
 		return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
-                && path.matches("^/account/user/[^/]+$");
+				&& path.matches("^/account/user/[^/]+$");
 	}
 }
