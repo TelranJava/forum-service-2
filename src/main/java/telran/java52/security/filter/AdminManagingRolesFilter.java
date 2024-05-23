@@ -2,7 +2,6 @@ package telran.java52.security.filter;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -27,7 +26,6 @@ import telran.java52.accounting.model.UserAccount;
 @Order(20)
 public class AdminManagingRolesFilter implements Filter {
     final UserRepository userRepository;
-    private static final Pattern PATH_PATTERN = Pattern.compile("(?i)^/account/user/[^/]+/role/(ADMINISTRATOR|MODERATOR|USER)$");
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -71,7 +69,7 @@ public class AdminManagingRolesFilter implements Filter {
 
     private boolean checkEndpoint(String method, String path) {
         return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
-                && PATH_PATTERN.matcher(path).matches();
+                && path.matches("(?i)^/account/user/[^/]+/role/(ADMINISTRATOR|MODERATOR|USER)$");
     }
 }
 
