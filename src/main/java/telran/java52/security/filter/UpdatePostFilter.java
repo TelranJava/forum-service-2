@@ -1,7 +1,6 @@
 package telran.java52.security.filter;
 
 import java.io.IOException;
-import java.util.Set;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -16,13 +15,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.dao.UserRepository;
-import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
+import telran.java52.post.dao.PostRepository;
 
 @Component
 @RequiredArgsConstructor
-@Order(30)
-public class AccountManagingFilter implements Filter {
+@Order(50)
+public class UpdatePostFilter implements Filter {
+	final PostRepository postRepository;
 	final UserRepository userRepository;
 
 	@Override
@@ -35,38 +34,28 @@ public class AccountManagingFilter implements Filter {
 		String method = request.getMethod();
 		String path = request.getServletPath();
 
-		if (checkEndpoint(method, path)) {
-//			String userName =  path.substring(path.lastIndexOf('/') + 1); // OR:
-			String []splitPath = path.split("/");
-			String userName = path.split("/")[splitPath.length-1];
-			
-			String login = request.getUserPrincipal().getName();
-			UserAccount userByLogin = userRepository.findById(login).get();
+		String[] splitPath = path.split("/");
+		String postId = path.split("/")[splitPath.length - 1];
 
-			if (HttpMethod.PUT.matches(method) && !isOwner(login, userName)) {
+		String login = request.getUserPrincipal().getName();
+		String author = postRepository.findById(postId).get().getAuthor();
+
+		if (checkEndpoint(method, path)) {
+			if (!(HttpMethod.PUT.matches(method) && isAuthor(login, author))) {
 				response.sendError(403);
 				return;
 			}
-
-			if (HttpMethod.DELETE.matches(method) && !(isOwner(login, userName) || isAdmin(userByLogin.getRoles()))) {
-				response.sendError(403,"Permission denied");
-				return;
-			}
-
 		}
+
 		chain.doFilter(request, response);
 	}
 
-	private boolean isAdmin(Set<Role> roles) {
-		return roles.contains(Role.ADMINISTRATOR);
-	}
-
-	private boolean isOwner(String login, String userName) {
-		return login.equalsIgnoreCase(userName);
+	private boolean isAuthor(String login, String author) {
+		return login.equalsIgnoreCase(author);
 	}
 
 	private boolean checkEndpoint(String method, String path) {
-		return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
-				&& path.matches("^/account/user/[^/]+$");
+		return HttpMethod.PUT.matches(method) 
+				&& path.matches("/forum/post/\\w+");
 	}
 }

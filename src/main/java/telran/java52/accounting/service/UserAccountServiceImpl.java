@@ -11,9 +11,9 @@ import telran.java52.accounting.dto.RolesDto;
 import telran.java52.accounting.dto.UserDto;
 import telran.java52.accounting.dto.UserEditDto;
 import telran.java52.accounting.dto.UserRegisterDto;
-import telran.java52.accounting.exeption.IncorrectRoleExeption;
+import telran.java52.accounting.exeption.IncorrectRoleException;
 import telran.java52.accounting.exeption.UserExistsException;
-import telran.java52.accounting.exeption.UserNotFoundExeption;
+import telran.java52.accounting.exeption.UserNotFoundException;
 import telran.java52.accounting.model.Role;
 import telran.java52.accounting.model.UserAccount;
 
@@ -39,13 +39,13 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 
 	@Override
 	public UserDto getUser(String login) {
-		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public UserDto updateUser(String login, UserEditDto user) {
-		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
 			userAccount.setFirstName(user.getFirstName());
 		}
@@ -58,14 +58,14 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 
 	@Override
 	public UserDto removeUser(String login) {
-		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		userRepository.deleteById(login);
 		return modelMapper.map(userAccount, UserDto.class);
 	}
 
 	@Override
 	public RolesDto changeRolesList(String login, String role, boolean isAddRole) {
-		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		boolean res;
 		// прверка роли, если такой роли не предусмотрена в инам то нужно бросить ошибку
 		try {
@@ -78,7 +78,7 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 				userRepository.save(userAccount);
 			}
 		} catch (Exception e) {
-			throw new IncorrectRoleExeption();
+			throw new IncorrectRoleException();
 		}
 
 //		Set<String> roleSet = userAccount.getRoles().stream().map(r -> r.toString()).collect(Collectors.toSet());
@@ -89,7 +89,7 @@ public class UserAccountServiceImpl implements UserAccountService, CommandLineRu
 
 	@Override
 	public void changePassword(String login, String newPassword) {
-		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundExeption::new);
+		UserAccount userAccount = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
 		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 		// зашифровать пароль перед тем как отправить в базу
 		userAccount.setPassword(password);

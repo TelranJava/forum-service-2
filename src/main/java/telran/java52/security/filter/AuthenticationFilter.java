@@ -3,6 +3,8 @@ package telran.java52.security.filter;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Base64;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.core.annotation.Order;
@@ -19,7 +21,9 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java52.accounting.dao.UserRepository;
+import telran.java52.accounting.model.Role;
 import telran.java52.accounting.model.UserAccount;
+import telran.java52.security.model.User;
 
 @Component
 @RequiredArgsConstructor
@@ -41,7 +45,7 @@ public class AuthenticationFilter implements Filter {
 //		System.out.println("дотуп к заголовкам");
 //		System.out.println("Authorization: "+request.getHeader("Authorization"));
 
-		if (checkEndpoint(request.getMethod(),request.getServletPath())) {
+		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
 			try {
 				String[] credential = getCredentials(request.getHeader("Authorization"));
 				// пароль который при входе на сайт прилетел
@@ -54,14 +58,14 @@ public class AuthenticationFilter implements Filter {
 					// если не совпадают пароли то дальше не пускаем
 					throw new RuntimeException(); // бросаем ошибку
 				}
-				request = new WrappedRequest(request, userAccount.getLogin());
+				Set<String> roles = userAccount.getRoles().stream().map(Role::name).collect(Collectors.toSet());
+				request = new WrappedRequest(request, userAccount.getLogin(), roles);
 				// сделать нормальный Principal с логином и паролем
 			} catch (Exception e) {
 				response.sendError(401); // все возможные ошибки ловим тут и пробрасываем 401-ю "Unauthorized"
 				return; // и выходим
-			} 
+			}
 		}
-		
 
 //		request.getUserPrincipal(); // достать данные  логина пользователя который авторизовался
 
@@ -69,8 +73,9 @@ public class AuthenticationFilter implements Filter {
 	}
 
 	private boolean checkEndpoint(String method, String path) {
-	// post register не требует логина и пароля, а все остальные требуют
-		return !(HttpMethod.POST.matches(method)&& path.matches("/account/register"));
+		// post register не требует логина и пароля, а все остальные требуют
+		return !((HttpMethod.POST.matches(method) && path.matches("/account/register"))
+				|| path.matches("/forum/posts/\\w+(/\\w+)?"));
 	}
 
 	private String[] getCredentials(String header) {
@@ -82,15 +87,17 @@ public class AuthenticationFilter implements Filter {
 	private class WrappedRequest extends HttpServletRequestWrapper {
 		// класс для того чтобы сделать нормальный Principal
 		private String login;
+		private Set<String> roles;
 
-		public WrappedRequest(HttpServletRequest request, String login) {
+		public WrappedRequest(HttpServletRequest request, String login, Set<String> roles) {
 			super(request);
 			this.login = login;
+			this.roles = roles;
 		}
 
 		@Override
 		public Principal getUserPrincipal() {
-			return () -> login;
+			return new User(login, roles);
 		}
 	}
 }
