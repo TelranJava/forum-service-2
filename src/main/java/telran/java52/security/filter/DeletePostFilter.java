@@ -15,82 +15,49 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserRepository;
-import telran.java52.accounting.exeption.UserNotFoundException;
 import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
 import telran.java52.model.Post;
 import telran.java52.post.dao.PostRepository;
+import telran.java52.security.model.User;
 
 @Component
 @RequiredArgsConstructor
 @Order(60)
 public class DeletePostFilter implements Filter {
 	final PostRepository postRepository;
-	final UserRepository userRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
-//		HttpServletRequest request = (HttpServletRequest) req;
-//        HttpServletResponse response = (HttpServletResponse) resp;
-//        if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-//            String principal = request.getUserPrincipal().getName();
-//            UserAccount userAccount = userRepository.findById(principal).get();
-//            String[] parts = request.getServletPath().split("/");
-//            String postId = parts[parts.length - 1];
-//            Post post = postRepository.findById(postId).orElse(null);
-//            if (post == null) {
-//                response.sendError(404, "Not found");
-//                return;
-//            }
-//            if (!(principal.equals(post.getAuthor()) || userAccount.getRoles().contains(Role.MODERATOR))) {
-//                response.sendError(403, "You do not have permission to access this resource");
-//                return;
-//            }
-//        }
-//        chain.doFilter(request, response);
-//    }
-//
-//    private boolean checkEndPoint(String method, String path) {
-//        return HttpMethod.DELETE.matches(method) && path.matches("/forum/post/\\w+");
-//    }
+
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 
-		String method = request.getMethod();
-		String path = request.getServletPath();
+		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
+			String[] splitPath = request.getServletPath().split("/");
+			String postId = request.getServletPath().split("/")[splitPath.length - 1];
+			User userPrincipal = (User) request.getUserPrincipal();
+			Post post = postRepository.findById(postId).orElse(null);
 
-		if (checkEndpoint(method, path)) {
-
-			String[] splitPath = path.split("/");
-			String postId = path.split("/")[splitPath.length - 1];
-
-			String login = request.getUserPrincipal().getName();
-			String author = postRepository.findById(postId).get().getAuthor();
-			
-			Set<Role> roles;
-			try {
-				UserAccount user = userRepository.findById(login).orElseThrow(UserNotFoundException::new);
-				roles = user.getRoles();
-			} catch (UserNotFoundException e) {
-				response.sendError(404);
+			if (post == null) {
+				response.sendError(404, "Post with ID: " + postId + " not found");
 				return;
 			}
 
-			if (!(HttpMethod.DELETE.matches(method) && (isAuthor(login, author) || isModerator(roles)))) {
-				response.sendError(403);
+			if (!(isOwner(userPrincipal.getName(), post.getAuthor()) || isModerator(userPrincipal.getRoles()))) {
+				response.sendError(403, "You do not have permission to access this resource");
 				return;
 			}
 		}
 
 		chain.doFilter(request, response);
 	}
-	private boolean isModerator(Set<Role> roles) {
-		return roles.contains(Role.MODERATOR);
+
+	private boolean isModerator(Set<String> roles) {
+		return roles.contains(Role.MODERATOR.toString());
 	}
 
-	private boolean isAuthor(String login, String author) {
+	private boolean isOwner(String login, String author) {
 		return login.equalsIgnoreCase(author);
 	}
 

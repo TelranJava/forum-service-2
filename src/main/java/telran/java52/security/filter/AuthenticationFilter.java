@@ -48,44 +48,35 @@ public class AuthenticationFilter implements Filter {
 		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
 			try {
 				String[] credential = getCredentials(request.getHeader("Authorization"));
-				// пароль который при входе на сайт прилетел
-				// System.out.println("login " + credential[0] + ", password " + credential[1]);
-
 				UserAccount userAccount = userRepository.findById(credential[0]).orElseThrow(RuntimeException::new);
-				// найти пользователя в базе для проверки пароля
 
 				if (!BCrypt.checkpw(credential[1], userAccount.getPassword())) {
-					// если не совпадают пароли то дальше не пускаем
-					throw new RuntimeException(); // бросаем ошибку
+					throw new RuntimeException();
 				}
 				Set<String> roles = userAccount.getRoles().stream().map(Role::name).collect(Collectors.toSet());
+
 				request = new WrappedRequest(request, userAccount.getLogin(), roles);
-				// сделать нормальный Principal с логином и паролем
 			} catch (Exception e) {
-				response.sendError(401); // все возможные ошибки ловим тут и пробрасываем 401-ю "Unauthorized"
-				return; // и выходим
+				response.sendError(401);
+				return;
 			}
 		}
-
-//		request.getUserPrincipal(); // достать данные  логина пользователя который авторизовался
-
-		chain.doFilter(request, response); // если все было ок то пробросить данные дальше
+		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndpoint(String method, String path) {
-		// post register не требует логина и пароля, а все остальные требуют
 		return !((HttpMethod.POST.matches(method) && path.matches("/account/register"))
-				|| path.matches("/forum/posts/\\w+(/\\w+)?"));
+				|| ((HttpMethod.POST.matches(method) || HttpMethod.GET.matches(method))
+						&& path.matches("/forum/posts/\\w+(/\\w+)?")));
 	}
 
 	private String[] getCredentials(String header) {
-		String token = header.split(" ")[1]; // закодированый логин и пароль без "Base "
-		String decode = new String(Base64.getDecoder().decode(token)); // раскодировать в "login:password"
-		return decode.split(":"); // сделать массив из логина и пароля, [0] - логин, [1] - пароль
+		String token = header.split(" ")[1];
+		String decode = new String(Base64.getDecoder().decode(token));
+		return decode.split(":");
 	}
 
 	private class WrappedRequest extends HttpServletRequestWrapper {
-		// класс для того чтобы сделать нормальный Principal
 		private String login;
 		private Set<String> roles;
 

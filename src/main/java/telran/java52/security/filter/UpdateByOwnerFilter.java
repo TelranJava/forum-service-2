@@ -13,41 +13,53 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import telran.java52.post.dao.PostRepository;
+import telran.java52.security.model.User;
 
 @Component
-@RequiredArgsConstructor
 @Order(40)
 public class UpdateByOwnerFilter implements Filter {
-	final PostRepository postRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-
-		String method = request.getMethod();
 		String path = request.getServletPath();
-
-		String[] splitPath = path.split("/");
-		String author = path.split("/")[splitPath.length - 1];
-
-		String login = request.getUserPrincipal().getName();
+		String method = request.getMethod();
 
 		if (checkEndpoint(method, path)) {
-			if (!login.equalsIgnoreCase(author)) {
-				response.sendError(403);
+			String[] splitPath = path.split("/");
+			String ownerPath = splitPath[splitPath.length - 1];
+			User userPrincipal = (User) request.getUserPrincipal();
+
+			if (HttpMethod.PUT.matches(method) && path.matches("/account/user/\\w+")
+					&& !isOwner(userPrincipal.getName(), ownerPath)) {
+				response.sendError(403, "You do not have permission to access this resource");
+				return;
+			}
+
+			if (HttpMethod.POST.matches(method) && path.matches("/forum/post/\\w+")
+					&& !isOwner(userPrincipal.getName(), ownerPath)) {
+				response.sendError(403, "You do not have permission to access this resource");
+				return;
+			}
+			
+			if (HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/comment/\\w+")
+					&& !isOwner(userPrincipal.getName(), ownerPath)) {
+				response.sendError(403, "You do not have permission to access this resource");
 				return;
 			}
 		}
-
 		chain.doFilter(request, response);
 	}
 
+	private boolean isOwner(String login, String userPathName) {
+		return login.equalsIgnoreCase(userPathName);
+	}
+
 	private boolean checkEndpoint(String method, String path) {
-		return (HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/comment/\\w+"))
-				|| (HttpMethod.POST.matches(method)) && path.matches("/forum/post/\\w+");
+		return (HttpMethod.PUT.matches(method) && path.matches("/account/user/\\w+"))
+				|| (HttpMethod.POST.matches(method) && path.matches("/forum/post/\\w+"))
+				|| (HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
 	}
 }

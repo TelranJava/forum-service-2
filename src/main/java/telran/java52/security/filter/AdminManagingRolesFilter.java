@@ -14,16 +14,12 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserRepository;
 import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
+import telran.java52.security.model.User;
 
 @Component
-@RequiredArgsConstructor
 @Order(20)
 public class AdminManagingRolesFilter implements Filter {
-	final UserRepository userRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -32,14 +28,9 @@ public class AdminManagingRolesFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 
-		String method = request.getMethod();
-		String path = request.getServletPath();
-
-		if (checkEndpoint(method, path)) {
-			String login = request.getUserPrincipal().getName();
-			UserAccount admin = userRepository.findById(login).get();
-
-			if (!isAdmin(admin.getRoles())) {
+		   if (checkEndpoint(request.getMethod(), request.getServletPath())) {
+			User userPrincipal = (User) request.getUserPrincipal();
+			if (!isAdmin(userPrincipal.getRoles())){
 				response.sendError(403);
 				return;
 			}
@@ -47,12 +38,13 @@ public class AdminManagingRolesFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean isAdmin(Set<Role> roles) {
-		return roles.contains(Role.ADMINISTRATOR);
+	private boolean isAdmin(Set<String> roles) {
+		return roles.contains(Role.ADMINISTRATOR.toString());
 	}
 
 	private boolean checkEndpoint(String method, String path) {
 		return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
 				&& path.matches("(?i)^/account/user/[^/]+/role/(ADMINISTRATOR|MODERATOR|USER)$");
+//or another regex path.matches("/account/user/\\w+/role/\\w+");
 	}
 }
