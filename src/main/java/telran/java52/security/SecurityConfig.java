@@ -1,8 +1,5 @@
 package telran.java52.security;
 
-import java.net.http.HttpRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,19 +7,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserRepository;
 import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
-import telran.java52.model.Post;
-import telran.java52.post.dao.PostRepository;
 
 @Configuration
 public class SecurityConfig {
