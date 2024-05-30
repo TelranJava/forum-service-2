@@ -23,7 +23,10 @@ public class UserDetailsServiseImpl implements UserDetailsService {
 		UserAccount userAccount = userRepository.findById(username)
 				.orElseThrow(() -> new UsernameNotFoundException(username));
 
-		Collection<String> roles = userAccount.getRoles().stream().map(r -> "ROLE_" + r.name()).toList();
+		Collection<String> roles = userAccount.getRoles()
+										.stream()
+										.map(r -> "ROLE_" + r.name())
+										.toList();
 
 		return new User(username, userAccount.getPassword(), AuthorityUtils.createAuthorityList(roles));
 	}

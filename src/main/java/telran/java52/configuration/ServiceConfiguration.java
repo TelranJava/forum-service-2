@@ -14,8 +14,10 @@ public class ServiceConfiguration {
 	@Bean
 	ModelMapper getModelMapper() {
 		ModelMapper modelMapper = new ModelMapper();
-		modelMapper.getConfiguration().setFieldMatchingEnabled(true).setFieldAccessLevel(AccessLevel.PRIVATE)
-				.setMatchingStrategy(MatchingStrategies.STRICT);
+		modelMapper.getConfiguration()
+							.setFieldMatchingEnabled(true)
+							.setFieldAccessLevel(AccessLevel.PRIVATE)
+							.setMatchingStrategy(MatchingStrategies.STRICT);
 		return modelMapper;
 	}
 
